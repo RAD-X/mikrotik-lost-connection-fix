@@ -15,14 +15,18 @@
         return;
     }
     w.fetch = function (url, f) {
-        if (activeReq) activeReq.abort();
+        if (activeReq) {
+            activeReq.abort();
+        }
         activeReq = newRequest();
         activeReq.onreadystatechange = function () {
-            if (activeReq.readyState === 4) {
-                if (activeReq.status === 200) {
+            if (this.readyState === 4) {
+                if (this.status === 200) {
                     try {
-                        var obj = eval('(' + activeReq.responseText + ')');
-                        if (active.list || active.table) {
+                        var obj = eval('(' + this.responseText + ')');
+                        if (!active) {
+                            f(obj);
+                        } else if(active.list || active.table) {
                             f(unpackList(obj));
                         } else {
                             f(unpack(obj));
@@ -30,9 +34,9 @@
                     } catch (e) {
                         showError("INTERNAL ERROR:" + e);
                     }
-                } else if (activeReq.status === 0) {
+                } else if (this.status === 0) {
                     refreshTimerId = setTimeout(refresh, url.refresh);
-                } else if (activeReq.status === 401) {
+                } else if (this.status === 401) {
                     getby("logout").style.display = "none";
                     getby("login").style.display = "inline";
                     showError("ERROR:Wrong password");
